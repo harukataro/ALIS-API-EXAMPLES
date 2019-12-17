@@ -1,0 +1,47 @@
+# coding: utf-8
+import requests
+import json
+import csv
+from datetime import datetime
+from google.colab import files
+
+
+roops = 10
+user_id = 'yoshidakunsansan'
+all_data = [] 
+all_data.append(['記事名',  '作成日',  'リンク'])
+sort_key = 0
+article_id ="xx"
+num_of_total = 0
+
+for page in range(roops):
+    if page == 0:
+        url = f'https://alis.to/api/users/{user_id}/articles/public?limit=100'
+    else:
+         url = f'https://alis.to/api/users/{user_id}/articles/public?limit=100&article_id={article_id}&sort_key={sort_key}'
+    
+    response = requests.get(url)
+    data = json.loads(response.text)
+
+    num_of_data = 0
+    for article in data['Items']:
+        
+        article_title = article['title']
+        created_time = datetime.fromtimestamp(article['created_at']).strftime('%x %X')
+        article_id = article['article_id']
+        article_url = f'https://alis.to/{user_id}/articles/{article_id}'
+        sort_key = article['sort_key']
+
+        all_data.append([article_title, created_time, article_url])
+        num_of_data += 1
+        
+    num_of_total += num_of_data
+    if num_of_data != 100:
+        break;
+
+print(f'total articles: {num_of_total}')
+
+with open('/content/drive/My Drive/my_alis_articles.csv', 'w') as f:
+    writer = csv.writer(f)
+    writer.writerows(all_data)
+print('file output finished')
